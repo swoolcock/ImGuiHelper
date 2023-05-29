@@ -1,7 +1,7 @@
 using ImGuiNET;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Celeste.Mod.ImGuiHelper.Utilities;
+namespace Celeste.Mod.ImGuiHelper;
 
 public static class DrawVertDeclaration {
     public static readonly VertexDeclaration Declaration;

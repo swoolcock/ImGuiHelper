@@ -1,12 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using ImGuiNET;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
-namespace Celeste.Mod.ImGuiHelper.Utilities;
+namespace Celeste.Mod.ImGuiHelper;
 
 /// <summary>
 /// ImGui renderer for use with XNA-likes (FNA & MonoGame)
@@ -14,39 +14,39 @@ namespace Celeste.Mod.ImGuiHelper.Utilities;
 public sealed class ImGuiRenderer {
 
     // Graphics
-    private readonly GraphicsDevice _graphicsDevice;
+    private readonly GraphicsDevice graphicsDevice;
 
-    private BasicEffect _effect;
-    private readonly RasterizerState _rasterizerState;
+    private BasicEffect effect;
+    private readonly RasterizerState rasterizerState;
 
-    private byte[] _vertexData;
-    private VertexBuffer _vertexBuffer;
-    private int _vertexBufferSize;
+    private byte[] vertexData;
+    private VertexBuffer vertexBuffer;
+    private int vertexBufferSize;
 
-    private byte[] _indexData;
-    private IndexBuffer _indexBuffer;
-    private int _indexBufferSize;
+    private byte[] indexData;
+    private IndexBuffer indexBuffer;
+    private int indexBufferSize;
 
     // Textures
-    private readonly Dictionary<IntPtr, Texture2D> _loadedTextures;
+    private readonly Dictionary<IntPtr, Texture2D> loadedTextures;
 
-    private int _textureId;
-    private IntPtr? _fontTextureId;
+    private int textureId;
+    private IntPtr? fontTextureId;
 
     // Input
-    private int _scrollWheelValue;
+    private int scrollWheelValue;
 
-    private readonly List<int> _keys = new List<int>();
+    private readonly List<int> keys = new List<int>();
 
     public ImGuiRenderer(Game game) {
         var context = ImGui.CreateContext();
         ImGui.SetCurrentContext(context);
 
-        _graphicsDevice = game.GraphicsDevice;
+        graphicsDevice = game.GraphicsDevice;
 
-        _loadedTextures = new Dictionary<IntPtr, Texture2D>();
+        loadedTextures = new Dictionary<IntPtr, Texture2D>();
 
-        _rasterizerState = new RasterizerState {
+        rasterizerState = new RasterizerState {
             CullMode = CullMode.None,
             DepthBias = 0,
             FillMode = FillMode.Solid,
@@ -55,6 +55,7 @@ public sealed class ImGuiRenderer {
             SlopeScaleDepthBias = 0
         };
 
+        EnableDocking();
         SetupInput();
     }
 
@@ -73,17 +74,17 @@ public sealed class ImGuiRenderer {
         Marshal.Copy(new IntPtr(pixelData), pixels, 0, pixels.Length);
 
         // Create and register the texture as an XNA texture
-        var tex2d = new Texture2D(_graphicsDevice, width, height, false, SurfaceFormat.Color);
+        var tex2d = new Texture2D(graphicsDevice, width, height, false, SurfaceFormat.Color);
         tex2d.SetData(pixels);
 
         // Should a texture already have been build previously, unbind it first so it can be deallocated
-        if (_fontTextureId.HasValue) UnbindTexture(_fontTextureId.Value);
+        if (fontTextureId.HasValue) UnbindTexture(fontTextureId.Value);
 
         // Bind the new texture to an ImGui-friendly id
-        _fontTextureId = BindTexture(tex2d);
+        fontTextureId = BindTexture(tex2d);
 
         // Let ImGui know where to find the texture
-        io.Fonts.SetTexID(_fontTextureId.Value);
+        io.Fonts.SetTexID(fontTextureId.Value);
         io.Fonts.ClearTexData(); // Clears CPU side texture data
     }
 
@@ -91,9 +92,9 @@ public sealed class ImGuiRenderer {
     /// Creates a pointer to a texture, which can be passed through ImGui calls such as <see cref="ImGui.Image" />. That pointer is then used by ImGui to let us know what texture to draw
     /// </summary>
     public IntPtr BindTexture(Texture2D texture) {
-        var id = new IntPtr(_textureId++);
+        var id = new IntPtr(textureId++);
 
-        _loadedTextures.Add(id, texture);
+        loadedTextures.Add(id, texture);
 
         return id;
     }
@@ -102,7 +103,7 @@ public sealed class ImGuiRenderer {
     /// Removes a previously created texture pointer, releasing its reference and allowing it to be deallocated
     /// </summary>
     public void UnbindTexture(IntPtr textureId) {
-        _loadedTextures.Remove(textureId);
+        loadedTextures.Remove(textureId);
     }
 
     /// <summary>
@@ -114,6 +115,7 @@ public sealed class ImGuiRenderer {
         UpdateInput();
 
         ImGui.NewFrame();
+        ImGui.DockSpaceOverViewport(ImGui.GetMainViewport(), ImGuiDockNodeFlags.PassthruCentralNode | ImGuiDockNodeFlags.NoDockingInCentralNode);
     }
 
     /// <summary>
@@ -129,32 +131,39 @@ public sealed class ImGuiRenderer {
 
     #region Setup & Update
 
+    private void EnableDocking() {
+        var io = ImGui.GetIO();
+        io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+        io.ConfigDockingAlwaysTabBar = true;
+        io.ConfigDockingTransparentPayload = true;
+    }
+
     /// <summary>
     /// Maps ImGui keys to XNA keys. We use this later on to tell ImGui what keys were pressed
     /// </summary>
     private void SetupInput() {
         var io = ImGui.GetIO();
 
-        _keys.Add(io.KeyMap[(int) ImGuiKey.Tab] = (int) Keys.Tab);
-        _keys.Add(io.KeyMap[(int) ImGuiKey.LeftArrow] = (int) Keys.Left);
-        _keys.Add(io.KeyMap[(int) ImGuiKey.RightArrow] = (int) Keys.Right);
-        _keys.Add(io.KeyMap[(int) ImGuiKey.UpArrow] = (int) Keys.Up);
-        _keys.Add(io.KeyMap[(int) ImGuiKey.DownArrow] = (int) Keys.Down);
-        _keys.Add(io.KeyMap[(int) ImGuiKey.PageUp] = (int) Keys.PageUp);
-        _keys.Add(io.KeyMap[(int) ImGuiKey.PageDown] = (int) Keys.PageDown);
-        _keys.Add(io.KeyMap[(int) ImGuiKey.Home] = (int) Keys.Home);
-        _keys.Add(io.KeyMap[(int) ImGuiKey.End] = (int) Keys.End);
-        _keys.Add(io.KeyMap[(int) ImGuiKey.Delete] = (int) Keys.Delete);
-        _keys.Add(io.KeyMap[(int) ImGuiKey.Backspace] = (int) Keys.Back);
-        _keys.Add(io.KeyMap[(int) ImGuiKey.Enter] = (int) Keys.Enter);
-        _keys.Add(io.KeyMap[(int) ImGuiKey.Escape] = (int) Keys.Escape);
-        _keys.Add(io.KeyMap[(int) ImGuiKey.Space] = (int) Keys.Space);
-        _keys.Add(io.KeyMap[(int) ImGuiKey.A] = (int) Keys.A);
-        _keys.Add(io.KeyMap[(int) ImGuiKey.C] = (int) Keys.C);
-        _keys.Add(io.KeyMap[(int) ImGuiKey.V] = (int) Keys.V);
-        _keys.Add(io.KeyMap[(int) ImGuiKey.X] = (int) Keys.X);
-        _keys.Add(io.KeyMap[(int) ImGuiKey.Y] = (int) Keys.Y);
-        _keys.Add(io.KeyMap[(int) ImGuiKey.Z] = (int) Keys.Z);
+        keys.Add(io.KeyMap[(int) ImGuiKey.Tab] = (int) Keys.Tab);
+        keys.Add(io.KeyMap[(int) ImGuiKey.LeftArrow] = (int) Keys.Left);
+        keys.Add(io.KeyMap[(int) ImGuiKey.RightArrow] = (int) Keys.Right);
+        keys.Add(io.KeyMap[(int) ImGuiKey.UpArrow] = (int) Keys.Up);
+        keys.Add(io.KeyMap[(int) ImGuiKey.DownArrow] = (int) Keys.Down);
+        keys.Add(io.KeyMap[(int) ImGuiKey.PageUp] = (int) Keys.PageUp);
+        keys.Add(io.KeyMap[(int) ImGuiKey.PageDown] = (int) Keys.PageDown);
+        keys.Add(io.KeyMap[(int) ImGuiKey.Home] = (int) Keys.Home);
+        keys.Add(io.KeyMap[(int) ImGuiKey.End] = (int) Keys.End);
+        keys.Add(io.KeyMap[(int) ImGuiKey.Delete] = (int) Keys.Delete);
+        keys.Add(io.KeyMap[(int) ImGuiKey.Backspace] = (int) Keys.Back);
+        keys.Add(io.KeyMap[(int) ImGuiKey.Enter] = (int) Keys.Enter);
+        keys.Add(io.KeyMap[(int) ImGuiKey.Escape] = (int) Keys.Escape);
+        keys.Add(io.KeyMap[(int) ImGuiKey.Space] = (int) Keys.Space);
+        keys.Add(io.KeyMap[(int) ImGuiKey.A] = (int) Keys.A);
+        keys.Add(io.KeyMap[(int) ImGuiKey.C] = (int) Keys.C);
+        keys.Add(io.KeyMap[(int) ImGuiKey.V] = (int) Keys.V);
+        keys.Add(io.KeyMap[(int) ImGuiKey.X] = (int) Keys.X);
+        keys.Add(io.KeyMap[(int) ImGuiKey.Y] = (int) Keys.Y);
+        keys.Add(io.KeyMap[(int) ImGuiKey.Z] = (int) Keys.Z);
 
         // MonoGame-specific //////////////////////
         // _game.Window.TextInput += (s, a) =>
@@ -180,18 +189,18 @@ public sealed class ImGuiRenderer {
     /// Updates the <see cref="Effect" /> to the current matrices and texture
     /// </summary>
     private Effect UpdateEffect(Texture2D texture) {
-        _effect ??= new BasicEffect(_graphicsDevice);
+        effect ??= new BasicEffect(graphicsDevice);
 
         var io = ImGui.GetIO();
 
-        _effect.World = Matrix.Identity;
-        _effect.View = Matrix.Identity;
-        _effect.Projection = Matrix.CreateOrthographicOffCenter(0f, io.DisplaySize.X, io.DisplaySize.Y, 0f, -1f, 1f);
-        _effect.TextureEnabled = true;
-        _effect.Texture = texture;
-        _effect.VertexColorEnabled = true;
+        effect.World = Matrix.Identity;
+        effect.View = Matrix.Identity;
+        effect.Projection = Matrix.CreateOrthographicOffCenter(0f, io.DisplaySize.X, io.DisplaySize.Y, 0f, -1f, 1f);
+        effect.TextureEnabled = true;
+        effect.Texture = texture;
+        effect.VertexColorEnabled = true;
 
-        return _effect;
+        return effect;
     }
 
     /// <summary>
@@ -203,8 +212,8 @@ public sealed class ImGuiRenderer {
         var mouse = Mouse.GetState();
         var keyboard = Keyboard.GetState();
 
-        for (int i = 0; i < _keys.Count; i++) {
-            io.KeysDown[_keys[i]] = keyboard.IsKeyDown((Keys) _keys[i]);
+        for (int i = 0; i < keys.Count; i++) {
+            io.KeysDown[keys[i]] = keyboard.IsKeyDown((Keys) keys[i]);
         }
 
         io.KeyShift = keyboard.IsKeyDown(Keys.LeftShift) || keyboard.IsKeyDown(Keys.RightShift);
@@ -212,7 +221,7 @@ public sealed class ImGuiRenderer {
         io.KeyAlt = keyboard.IsKeyDown(Keys.LeftAlt) || keyboard.IsKeyDown(Keys.RightAlt);
         io.KeySuper = keyboard.IsKeyDown(Keys.LeftWindows) || keyboard.IsKeyDown(Keys.RightWindows);
 
-        io.DisplaySize = new System.Numerics.Vector2(_graphicsDevice.PresentationParameters.BackBufferWidth, _graphicsDevice.PresentationParameters.BackBufferHeight);
+        io.DisplaySize = new System.Numerics.Vector2(graphicsDevice.PresentationParameters.BackBufferWidth, graphicsDevice.PresentationParameters.BackBufferHeight);
         io.DisplayFramebufferScale = new System.Numerics.Vector2(1f, 1f);
 
         io.MousePos = new System.Numerics.Vector2(mouse.X, mouse.Y);
@@ -221,9 +230,9 @@ public sealed class ImGuiRenderer {
         io.MouseDown[1] = mouse.RightButton == ButtonState.Pressed;
         io.MouseDown[2] = mouse.MiddleButton == ButtonState.Pressed;
 
-        var scrollDelta = mouse.ScrollWheelValue - _scrollWheelValue;
+        var scrollDelta = mouse.ScrollWheelValue - scrollWheelValue;
         io.MouseWheel = scrollDelta > 0 ? 1 : scrollDelta < 0 ? -1 : 0;
-        _scrollWheelValue = mouse.ScrollWheelValue;
+        scrollWheelValue = mouse.ScrollWheelValue;
     }
 
     #endregion Setup & Update
@@ -235,27 +244,27 @@ public sealed class ImGuiRenderer {
     /// </summary>
     private void RenderDrawData(ImDrawDataPtr drawData) {
         // Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled, vertex/texcoord/color pointers
-        var lastViewport = _graphicsDevice.Viewport;
-        var lastScissorBox = _graphicsDevice.ScissorRectangle;
+        var lastViewport = graphicsDevice.Viewport;
+        var lastScissorBox = graphicsDevice.ScissorRectangle;
 
-        _graphicsDevice.BlendFactor = Color.White;
-        _graphicsDevice.BlendState = BlendState.NonPremultiplied;
-        _graphicsDevice.RasterizerState = _rasterizerState;
-        _graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
+        graphicsDevice.BlendFactor = Color.White;
+        graphicsDevice.BlendState = BlendState.NonPremultiplied;
+        graphicsDevice.RasterizerState = rasterizerState;
+        graphicsDevice.DepthStencilState = DepthStencilState.DepthRead;
 
         // Handle cases of screen coordinates != from framebuffer coordinates (e.g. retina displays)
         drawData.ScaleClipRects(ImGui.GetIO().DisplayFramebufferScale);
 
         // Setup projection
-        _graphicsDevice.Viewport = new Viewport(0, 0, _graphicsDevice.PresentationParameters.BackBufferWidth, _graphicsDevice.PresentationParameters.BackBufferHeight);
+        graphicsDevice.Viewport = new Viewport(0, 0, graphicsDevice.PresentationParameters.BackBufferWidth, graphicsDevice.PresentationParameters.BackBufferHeight);
 
         UpdateBuffers(drawData);
 
         RenderCommandLists(drawData);
 
         // Restore modified state
-        _graphicsDevice.Viewport = lastViewport;
-        _graphicsDevice.ScissorRectangle = lastScissorBox;
+        graphicsDevice.Viewport = lastViewport;
+        graphicsDevice.ScissorRectangle = lastScissorBox;
     }
 
     private unsafe void UpdateBuffers(ImDrawDataPtr drawData) {
@@ -264,20 +273,20 @@ public sealed class ImGuiRenderer {
         }
 
         // Expand buffers if we need more room
-        if (drawData.TotalVtxCount > _vertexBufferSize) {
-            _vertexBuffer?.Dispose();
+        if (drawData.TotalVtxCount > vertexBufferSize) {
+            vertexBuffer?.Dispose();
 
-            _vertexBufferSize = (int) (drawData.TotalVtxCount * 1.5f);
-            _vertexBuffer = new VertexBuffer(_graphicsDevice, DrawVertDeclaration.Declaration, _vertexBufferSize, BufferUsage.None);
-            _vertexData = new byte[_vertexBufferSize * DrawVertDeclaration.Size];
+            vertexBufferSize = (int) (drawData.TotalVtxCount * 1.5f);
+            vertexBuffer = new VertexBuffer(graphicsDevice, DrawVertDeclaration.Declaration, vertexBufferSize, BufferUsage.None);
+            vertexData = new byte[vertexBufferSize * DrawVertDeclaration.Size];
         }
 
-        if (drawData.TotalIdxCount > _indexBufferSize) {
-            _indexBuffer?.Dispose();
+        if (drawData.TotalIdxCount > indexBufferSize) {
+            indexBuffer?.Dispose();
 
-            _indexBufferSize = (int) (drawData.TotalIdxCount * 1.5f);
-            _indexBuffer = new IndexBuffer(_graphicsDevice, IndexElementSize.SixteenBits, _indexBufferSize, BufferUsage.None);
-            _indexData = new byte[_indexBufferSize * sizeof(ushort)];
+            indexBufferSize = (int) (drawData.TotalIdxCount * 1.5f);
+            indexBuffer = new IndexBuffer(graphicsDevice, IndexElementSize.SixteenBits, indexBufferSize, BufferUsage.None);
+            indexData = new byte[indexBufferSize * sizeof(ushort)];
         }
 
         // Copy ImGui's vertices and indices to a set of managed byte arrays
@@ -287,10 +296,10 @@ public sealed class ImGuiRenderer {
         for (int n = 0; n < drawData.CmdListsCount; n++) {
             ImDrawListPtr cmdList = drawData.CmdListsRange[n];
 
-            fixed (void* vtxDstPtr = &_vertexData[vtxOffset * DrawVertDeclaration.Size])
-            fixed (void* idxDstPtr = &_indexData[idxOffset * sizeof(ushort)]) {
-                Buffer.MemoryCopy((void*) cmdList.VtxBuffer.Data, vtxDstPtr, _vertexData.Length, cmdList.VtxBuffer.Size * DrawVertDeclaration.Size);
-                Buffer.MemoryCopy((void*) cmdList.IdxBuffer.Data, idxDstPtr, _indexData.Length, cmdList.IdxBuffer.Size * sizeof(ushort));
+            fixed (void* vtxDstPtr = &vertexData[vtxOffset * DrawVertDeclaration.Size])
+            fixed (void* idxDstPtr = &indexData[idxOffset * sizeof(ushort)]) {
+                Buffer.MemoryCopy((void*) cmdList.VtxBuffer.Data, vtxDstPtr, vertexData.Length, cmdList.VtxBuffer.Size * DrawVertDeclaration.Size);
+                Buffer.MemoryCopy((void*) cmdList.IdxBuffer.Data, idxDstPtr, indexData.Length, cmdList.IdxBuffer.Size * sizeof(ushort));
             }
 
             vtxOffset += cmdList.VtxBuffer.Size;
@@ -298,13 +307,13 @@ public sealed class ImGuiRenderer {
         }
 
         // Copy the managed byte arrays to the gpu vertex- and index buffers
-        _vertexBuffer.SetData(_vertexData, 0, drawData.TotalVtxCount * DrawVertDeclaration.Size);
-        _indexBuffer.SetData(_indexData, 0, drawData.TotalIdxCount * sizeof(ushort));
+        vertexBuffer.SetData(vertexData, 0, drawData.TotalVtxCount * DrawVertDeclaration.Size);
+        indexBuffer.SetData(indexData, 0, drawData.TotalIdxCount * sizeof(ushort));
     }
 
     private unsafe void RenderCommandLists(ImDrawDataPtr drawData) {
-        _graphicsDevice.SetVertexBuffer(_vertexBuffer);
-        _graphicsDevice.Indices = _indexBuffer;
+        graphicsDevice.SetVertexBuffer(vertexBuffer);
+        graphicsDevice.Indices = indexBuffer;
 
         int vtxOffset = 0;
         int idxOffset = 0;
@@ -319,24 +328,24 @@ public sealed class ImGuiRenderer {
                     continue;
                 }
 
-                if (!_loadedTextures.ContainsKey(drawCmd.TextureId)) {
+                if (!loadedTextures.ContainsKey(drawCmd.TextureId)) {
                     throw new InvalidOperationException($"Could not find a texture with id '{drawCmd.TextureId}', please check your bindings");
                 }
 
-                _graphicsDevice.ScissorRectangle = new Rectangle(
+                graphicsDevice.ScissorRectangle = new Rectangle(
                     (int) drawCmd.ClipRect.X,
                     (int) drawCmd.ClipRect.Y,
                     (int) (drawCmd.ClipRect.Z - drawCmd.ClipRect.X),
                     (int) (drawCmd.ClipRect.W - drawCmd.ClipRect.Y)
                 );
 
-                var effect = UpdateEffect(_loadedTextures[drawCmd.TextureId]);
+                var effect = UpdateEffect(loadedTextures[drawCmd.TextureId]);
 
                 foreach (var pass in effect.CurrentTechnique.Passes) {
                     pass.Apply();
 
 #pragma warning disable CS0618 // // FNA does not expose an alternative method.
-                    _graphicsDevice.DrawIndexedPrimitives(
+                    graphicsDevice.DrawIndexedPrimitives(
                         primitiveType: PrimitiveType.TriangleList,
                         baseVertex: (int) drawCmd.VtxOffset + vtxOffset,
                         minVertexIndex: 0,

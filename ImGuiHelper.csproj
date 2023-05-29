@@ -24,15 +24,8 @@
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1" PrivateAssets="all" ExcludeAssets="runtime" />
         <PackageReference Include="ImGui.NET" Version="1.89.4" />
         <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
-        <PackageReference Include="YamlDotNet" Version="11.2.1" />
     </ItemGroup>
 
-<!--    <ItemGroup>-->
-<!--        <Content Include="cimgui/win-x64/cimgui.dll" CopyToOutputDirectory="PreserveNewest" />-->
-<!--        <Content Include="cimgui/osx/cimgui.dylib" CopyToOutputDirectory="PreserveNewest" Link="lib%(Filename)%(Extension)" />-->
-<!--        <Content Include="cimgui/linux-x64/cimgui.so" CopyToOutputDirectory="PreserveNewest" Link="lib%(Filename)%(Extension)" />-->
-<!--    </ItemGroup>-->
-    
     <ItemGroup>
         <Reference Include="$(CelestePrefix)\Celeste.dll">
             <Private>false</Private>
@@ -43,15 +36,18 @@
         <Reference Include="$(CelestePrefix)\FNA.dll">
             <Private>false</Private>
         </Reference>
+        <Reference Include="$(CelestePrefix)\YamlDotNet.dll">
+            <Private>false</Private>
+        </Reference>
     </ItemGroup>
-    
-    <ItemGroup>
-      <Folder Include="lib" />
-    </ItemGroup>
-    
+
     <Target Name="CopyFiles" AfterTargets="Build">
         <Copy SourceFiles="$(OutputPath)\$(AssemblyName).dll" DestinationFolder="bin" />
         <Copy SourceFiles="lib\ImGui.NET.dll" DestinationFolder="bin" />
+        <Copy SourceFiles="lib\linux-x64\cimgui.so" DestinationFiles="bin\lib-linux\libcimgui.so" />
+        <Copy SourceFiles="lib\osx\cimgui.dylib" DestinationFiles="bin\lib-osx\libcimgui.dylib" />
+        <Copy SourceFiles="lib\win-x64\cimgui.dll" DestinationFiles="bin\lib-win-x64\cimgui.dll" />
+        <Copy SourceFiles="lib\win-x86\cimgui.dll" DestinationFiles="bin\lib-win-x86\cimgui.dll" />
     </Target>
     
     <PropertyGroup>

@@ -1,7 +1,6 @@
-﻿using Celeste.Mod.ImGuiHelper.Entities;
-using System;
-using Celeste.Mod.ImGuiHelper.Utilities;
+﻿using System;
 using ImGuiNET;
+using Microsoft.Xna.Framework;
 using Monocle;
 using System.Linq;
 
@@ -16,7 +15,7 @@ public class ImGuiHelperModule : EverestModule {
     public override Type SessionType => typeof(ImGuiHelperModuleSession);
     public static ImGuiHelperModuleSession Session => (ImGuiHelperModuleSession) Instance._Session;
 
-    private static ImGuiManager _imGuiManager;
+    private static ImGuiManager imGuiManager;
 
     public ImGuiHelperModule() {
         Instance = this;
@@ -24,28 +23,37 @@ public class ImGuiHelperModule : EverestModule {
 
     public override void Load() {
         On.Monocle.Engine.RenderCore += Engine_RenderCore;
+        On.Monocle.Engine.Update += Engine_Update;
     }
 
     public override void Unload() {
         On.Monocle.Engine.RenderCore -= Engine_RenderCore;
+        On.Monocle.Engine.Update -= Engine_Update;
     }
 
     public override void Initialize() {
-        _imGuiManager = new ImGuiManager();
+        imGuiManager = new ImGuiManager();
     }
 
-    private void Engine_RenderCore(On.Monocle.Engine.orig_RenderCore orig, Engine self) {
-        _imGuiManager?.BeforeRender(Engine.RawDeltaTime);
+    private static void Engine_RenderCore(On.Monocle.Engine.orig_RenderCore orig, Engine self) {
+        imGuiManager?.BeforeRender(Engine.RawDeltaTime);
         orig(self);
-        _imGuiManager?.Render();
+        imGuiManager?.Render();
     }
-        
-    [Command("imgui", "Test ImGui")]
-    private static void CmdTestImGui() {
-        if (!ImGuiManager.GlobalComponents.Any()) {
-            ImGuiManager.GlobalComponents.Add(new ImGuiComponent(_ => {
-                ImGui.ShowDemoWindow();
-            }));
+
+    private static void Engine_Update(On.Monocle.Engine.orig_Update orig, Engine self, GameTime gametime) {
+        orig(self, gametime);
+        imGuiManager?.Update(gametime);
+    }
+
+    [Command("imgui", "Show ImGui Demo Window")]
+    private static void CmdImGuiDemoWindow() {
+        if (!ImGuiManager.Handlers.OfType<DemoWindow>().Any()) {
+            ImGuiManager.Handlers.Add(new DemoWindow());
         }
+    }
+
+    private class DemoWindow : ImGuiHandler {
+        public override void Render() => ImGui.ShowDemoWindow();
     }
 }
