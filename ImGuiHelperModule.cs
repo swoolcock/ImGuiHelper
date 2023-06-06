@@ -36,20 +36,27 @@ public class ImGuiHelperModule : EverestModule {
     }
 
     private static void Engine_RenderCore(On.Monocle.Engine.orig_RenderCore orig, Engine self) {
-        imGuiManager?.BeforeRender(Engine.RawDeltaTime);
+        imGuiManager?.RenderHandlers(Engine.RawDeltaTime);
         orig(self);
-        imGuiManager?.Render();
+        imGuiManager?.RenderTexture();
     }
 
     private static void Engine_Update(On.Monocle.Engine.orig_Update orig, Engine self, GameTime gametime) {
         orig(self, gametime);
-        imGuiManager?.Update(gametime);
+        imGuiManager?.UpdateHandlers(gametime);
     }
 
     [Command("imgui", "Show ImGui Demo Window")]
     private static void CmdImGuiDemoWindow() {
         if (!ImGuiManager.Handlers.OfType<DemoWindow>().Any()) {
             ImGuiManager.Handlers.Add(new DemoWindow());
+        }
+    }
+
+    [Command("scene", "Show ImGui Scene Graph")]
+    private static void CmdImGuiSceneViewer() {
+        if (!ImGuiManager.Handlers.OfType<SceneViewer>().Any()) {
+            ImGuiManager.Handlers.Add(new SceneViewer());
         }
     }
 
