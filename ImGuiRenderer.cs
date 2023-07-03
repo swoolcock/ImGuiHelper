@@ -1,3 +1,6 @@
+// Copyright (c) Shane Woolcock. Licensed under the MIT Licence.
+// See the LICENCE file in the repository root for full licence text.
+
 using ImGuiNET;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -10,6 +13,8 @@ namespace Celeste.Mod.ImGuiHelper;
 
 /// <summary>
 /// ImGui renderer for use with XNA-likes (FNA & MonoGame)
+/// Majority borrowed from ImGui.NET samples.
+/// https://github.com/ImGuiNET/ImGui.NET/blob/master/src/ImGui.NET.SampleProgram.XNA/ImGuiRenderer.cs
 /// </summary>
 public sealed class ImGuiRenderer {
 

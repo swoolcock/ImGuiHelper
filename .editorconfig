@@ -4,6 +4,9 @@ root = true
 indent_style = space
 indent_size = 4
 
+#license header
+file_header_template = Copyright (c) Shane Woolcock. Licensed under the MIT Licence.\nSee the LICENCE file in the repository root for full licence text.
+
 # https://kent-boogaart.com/blog/editorconfig-reference-for-c-developers
 
 csharp_indent_block_contents = true
