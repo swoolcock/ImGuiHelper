@@ -32,20 +32,20 @@ public class ImGuiHelperModule : EverestModule {
     }
 
     public override void Initialize() {
-        imGuiManager = new ImGuiManager();
+        imGuiManager = new ImGuiManager { ShowMouseCursor = Settings.ShowMouseCursorOnStartup };
     }
 
     private static void Engine_RenderCore(On.Monocle.Engine.orig_RenderCore orig, Engine self) {
         imGuiManager?.RenderHandlers(Engine.RawDeltaTime);
         orig(self);
-        imGuiManager?.RenderTexture(Settings.ShowMouseCursor);
+        imGuiManager?.RenderTexture();
     }
 
     private static void Engine_Update(On.Monocle.Engine.orig_Update orig, Engine self, GameTime gametime) {
         orig(self, gametime);
 
         if (Settings.ToggleMouseCursor.Pressed) {
-            Settings.ShowMouseCursor = !Settings.ShowMouseCursor;
+            imGuiManager.ShowMouseCursor = !imGuiManager.ShowMouseCursor;
         }
 
         imGuiManager?.UpdateHandlers(gametime);
