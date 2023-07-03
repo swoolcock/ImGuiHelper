@@ -38,11 +38,16 @@ public class ImGuiHelperModule : EverestModule {
     private static void Engine_RenderCore(On.Monocle.Engine.orig_RenderCore orig, Engine self) {
         imGuiManager?.RenderHandlers(Engine.RawDeltaTime);
         orig(self);
-        imGuiManager?.RenderTexture();
+        imGuiManager?.RenderTexture(Settings.ShowMouseCursor);
     }
 
     private static void Engine_Update(On.Monocle.Engine.orig_Update orig, Engine self, GameTime gametime) {
         orig(self, gametime);
+
+        if (Settings.ToggleMouseCursor.Pressed) {
+            Settings.ShowMouseCursor = !Settings.ShowMouseCursor;
+        }
+
         imGuiManager?.UpdateHandlers(gametime);
     }
 
