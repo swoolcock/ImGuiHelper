@@ -37,4 +37,4 @@ You only need to install this if it's a dependency of something else.
 
 ### Settings:
 * **Show Mouse Cursor On Startup** (On/Off) : Defines whether the mouse cursor should display when the game starts, defaults to Off.
-* **Toggle Mouse Cursor** (Binding) : Defines a hotkey to toggle the mouse cursor, unbound by default.~~~~
+* **Toggle Mouse Cursor** (Binding) : Defines a hotkey to toggle the mouse cursor, unbound by default.
