@@ -43,6 +43,7 @@
 
     <Target Name="CopyFiles" AfterTargets="Build">
         <Copy SourceFiles="$(OutputPath)\$(AssemblyName).dll" DestinationFolder="bin" />
+        <Copy SourceFiles="$(OutputPath)\$(AssemblyName).pdb" DestinationFolder="bin" />
         <Copy SourceFiles="lib\ImGui.NET.dll" DestinationFolder="bin" />
         <Copy SourceFiles="lib\linux-x64\cimgui.so" DestinationFiles="bin\lib-linux\libcimgui.so" />
         <Copy SourceFiles="lib\osx\cimgui.dylib" DestinationFiles="bin\lib-osx\libcimgui.dylib" />
