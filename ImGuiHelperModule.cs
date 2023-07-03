@@ -46,6 +46,11 @@ public class ImGuiHelperModule : EverestModule {
         imGuiManager?.UpdateHandlers(gametime);
     }
 
+    [Command("imguiclear", "Remove all ImGui handlers")]
+    private static void CmdImGuiClear() {
+        ImGuiManager.Handlers.Clear();
+    }
+
     [Command("imguidemo", "Show ImGui Demo Window")]
     private static void CmdImGuiDemoWindow() {
         if (!ImGuiManager.Handlers.OfType<DemoWindow>().Any()) {
