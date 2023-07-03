@@ -46,7 +46,7 @@ public class ImGuiHelperModule : EverestModule {
         imGuiManager?.UpdateHandlers(gametime);
     }
 
-    [Command("imgui", "Show ImGui Demo Window")]
+    [Command("imguidemo", "Show ImGui Demo Window")]
     private static void CmdImGuiDemoWindow() {
         if (!ImGuiManager.Handlers.OfType<DemoWindow>().Any()) {
             ImGuiManager.Handlers.Add(new DemoWindow());
