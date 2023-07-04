@@ -35,7 +35,8 @@ public class ImGuiHelperModule : EverestModule {
     }
 
     public override void Initialize() {
-        imGuiManager = new ImGuiManager { ShowMouseCursor = Settings.ShowMouseCursorOnStartup };
+        imGuiManager = new ImGuiManager();
+        Engine.Instance.IsMouseVisible = Settings.ShowMouseCursorOnStartup;
     }
 
     private static void Engine_RenderCore(On.Monocle.Engine.orig_RenderCore orig, Engine self) {
@@ -48,7 +49,7 @@ public class ImGuiHelperModule : EverestModule {
         orig(self, gametime);
 
         if (Settings.ToggleMouseCursor.Pressed) {
-            imGuiManager.ShowMouseCursor = !imGuiManager.ShowMouseCursor;
+            Engine.Instance.IsMouseVisible = !Engine.Instance.IsMouseVisible;
         }
 
         imGuiManager?.UpdateHandlers(gametime);

@@ -15,7 +15,6 @@ public class ImGuiManager {
 
     public static List<ImGuiHandler> Handlers { get; } = new List<ImGuiHandler>();
 
-    public bool ShowMouseCursor { get; set; }
 
     public ImGuiManager() {
         renderer = new ImGuiRenderer(Engine.Instance);
@@ -41,13 +40,6 @@ public class ImGuiManager {
     public void RenderTexture() {
         Draw.SpriteBatch.Begin();
         Draw.SpriteBatch.Draw(renderTarget, Vector2.Zero, Color.White);
-
-        if (ShowMouseCursor) {
-            var mousePos = ImGui.GetMousePos();
-            Draw.Rect(mousePos.X - 2, mousePos.Y - 2, 4, 4, Color.Black);
-            Draw.Circle(mousePos.X, mousePos.Y, 3, Color.White, 2, 4);
-        }
-
         Draw.SpriteBatch.End();
     }
 
