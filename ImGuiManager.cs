@@ -15,6 +15,7 @@ public class ImGuiManager {
 
     public static List<ImGuiHandler> Handlers { get; } = new List<ImGuiHandler>();
 
+    public bool WantCaptureKeyboard { get; private set; }
 
     public ImGuiManager() {
         renderer = new ImGuiRenderer(Engine.Instance);
@@ -33,10 +34,12 @@ public class ImGuiManager {
         renderer.BeforeLayout(rawDeltaTime);
         foreach (var handler in Handlers) {
             if (handler.Visible) {
-            handler.Render();
-        }
+                handler.Render();
+            }
         }
         renderer.AfterLayout();
+
+        WantCaptureKeyboard = ImGui.GetIO().WantCaptureKeyboard;
     }
 
     public void RenderTexture() {
@@ -48,8 +51,8 @@ public class ImGuiManager {
     public void UpdateHandlers(GameTime gameTime) {
         foreach (var handler in Handlers) {
             if (handler.Active) {
-            handler.Update(gameTime);
+                handler.Update(gameTime);
+            }
         }
     }
-}
 }
