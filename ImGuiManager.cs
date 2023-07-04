@@ -32,7 +32,9 @@ public class ImGuiManager {
 
         renderer.BeforeLayout(rawDeltaTime);
         foreach (var handler in Handlers) {
+            if (handler.Visible) {
             handler.Render();
+        }
         }
         renderer.AfterLayout();
     }
@@ -45,7 +47,9 @@ public class ImGuiManager {
 
     public void UpdateHandlers(GameTime gameTime) {
         foreach (var handler in Handlers) {
+            if (handler.Active) {
             handler.Update(gameTime);
         }
     }
+}
 }

@@ -7,6 +7,8 @@ using System;
 namespace Celeste.Mod.ImGuiHelper;
 
 public class ImGuiHandler {
+    public bool Visible { get; set; } = true;
+    public bool Active { get; set; } = true;
     public Action RenderAction { get; set; }
     public Action<GameTime> UpdateAction { get; set; }
 
