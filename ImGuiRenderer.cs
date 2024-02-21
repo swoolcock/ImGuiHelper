@@ -181,7 +181,7 @@ public sealed class ImGuiRenderer {
         ///////////////////////////////////////////
 
         // FNA-specific ///////////////////////////
-        TextInputEXT.TextInput += c => {
+        TextInput.OnInput += c => {
             if (c == '\t') return;
 
             ImGui.GetIO().AddInputCharacter(c);
