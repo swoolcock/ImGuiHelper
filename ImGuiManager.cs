@@ -23,9 +23,12 @@ public class ImGuiManager {
     }
 
     public void RenderHandlers(float rawDeltaTime) {
-        if (renderTarget == null || renderTarget.IsDisposed || renderTarget.Width != Engine.Width || renderTarget.Height != Engine.Height) {
+        var expectedWidth = Engine.Instance.GraphicsDevice.PresentationParameters.BackBufferWidth;
+        var expectedHeight = Engine.Instance.GraphicsDevice.PresentationParameters.BackBufferHeight;
+
+        if (renderTarget == null || renderTarget.IsDisposed || renderTarget.Width != expectedWidth || renderTarget.Height != expectedHeight) {
             renderTarget?.Dispose();
-            renderTarget = new RenderTarget2D(Engine.Instance.GraphicsDevice, Engine.Width, Engine.Height, false, SurfaceFormat.Color, DepthFormat.Depth24Stencil8, 0, RenderTargetUsage.DiscardContents);
+            renderTarget = new RenderTarget2D(Engine.Instance.GraphicsDevice, expectedWidth, expectedHeight, false, SurfaceFormat.Color, DepthFormat.Depth24Stencil8, 0, RenderTargetUsage.DiscardContents);
         }
 
         Engine.Graphics.GraphicsDevice.SetRenderTarget(renderTarget);
