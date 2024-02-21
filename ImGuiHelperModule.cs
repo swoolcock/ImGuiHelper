@@ -4,6 +4,7 @@
 using System;
 using ImGuiNET;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Monocle;
 using System.Linq;
 
@@ -47,8 +48,13 @@ public class ImGuiHelperModule : EverestModule {
 
     private static void Engine_RenderCore(On.Monocle.Engine.orig_RenderCore orig, Engine self) {
         imGuiManager?.RenderHandlers(Engine.RawDeltaTime);
+
         orig(self);
+
+        var oldViewport = Engine.Instance.GraphicsDevice.Viewport;
+        Engine.Instance.GraphicsDevice.Viewport = new Viewport(0, 0, Engine.Instance.Window.ClientBounds.Width, Engine.Instance.Window.ClientBounds.Height);
         imGuiManager?.RenderTexture();
+        Engine.Instance.GraphicsDevice.Viewport = oldViewport;
     }
 
     private static void Engine_Update(On.Monocle.Engine.orig_Update orig, Engine self, GameTime gametime) {
