@@ -1,6 +1,6 @@
 - Name: ImGuiHelper
-  Version: 0.1.1
+  Version: 0.1.2
   DLL: bin/ImGuiHelper.dll
   Dependencies:
     - Name: EverestCore
-      Version: 1.4054.0
+      Version: 1.4465.0
