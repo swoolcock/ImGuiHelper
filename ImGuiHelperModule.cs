@@ -87,22 +87,15 @@ public class ImGuiHelperModule : EverestModule {
         orig(self, key);
     }
 
-    [Command("imguiclear", "Remove all ImGui handlers")]
+    [Command("imgui_clear", "Remove all ImGui handlers")]
     private static void CmdImGuiClear() {
         ImGuiManager.Handlers.Clear();
     }
 
-    [Command("imguidemo", "Show ImGui Demo Window")]
+    [Command("imgui_demo", "Show ImGui Demo Window")]
     private static void CmdImGuiDemoWindow() {
         if (!ImGuiManager.Handlers.OfType<DemoWindow>().Any()) {
             ImGuiManager.Handlers.Add(new DemoWindow());
-        }
-    }
-
-    [Command("scene", "Show ImGui Scene Graph")]
-    private static void CmdImGuiSceneViewer() {
-        if (!ImGuiManager.Handlers.OfType<SceneViewer>().Any()) {
-            ImGuiManager.Handlers.Add(new SceneViewer());
         }
     }
 
