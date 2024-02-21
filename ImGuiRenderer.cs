@@ -5,6 +5,7 @@ using ImGuiNET;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Monocle;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -214,30 +215,38 @@ public sealed class ImGuiRenderer {
     private void UpdateInput() {
         var io = ImGui.GetIO();
 
-        var mouse = Mouse.GetState();
-        var keyboard = Keyboard.GetState();
-
-        for (int i = 0; i < keys.Count; i++) {
-            io.KeysDown[keys[i]] = keyboard.IsKeyDown((Keys) keys[i]);
-        }
-
-        io.KeyShift = keyboard.IsKeyDown(Keys.LeftShift) || keyboard.IsKeyDown(Keys.RightShift);
-        io.KeyCtrl = keyboard.IsKeyDown(Keys.LeftControl) || keyboard.IsKeyDown(Keys.RightControl);
-        io.KeyAlt = keyboard.IsKeyDown(Keys.LeftAlt) || keyboard.IsKeyDown(Keys.RightAlt);
-        io.KeySuper = keyboard.IsKeyDown(Keys.LeftWindows) || keyboard.IsKeyDown(Keys.RightWindows);
-
-        io.DisplaySize = new System.Numerics.Vector2(graphicsDevice.PresentationParameters.BackBufferWidth, graphicsDevice.PresentationParameters.BackBufferHeight);
+        io.DisplaySize = new System.Numerics.Vector2(graphicsDevice.PresentationParameters.BackBufferWidth,
+            graphicsDevice.PresentationParameters.BackBufferHeight);
         io.DisplayFramebufferScale = new System.Numerics.Vector2(1f, 1f);
 
-        io.MousePos = new System.Numerics.Vector2(mouse.X, mouse.Y);
+        // if the game isn't focused, reset everything
+        if (!Engine.Instance.IsActive) {
+            io.MousePos = new System.Numerics.Vector2(-1f);
+            scrollWheelValue = 0;
+            io.ClearInputKeys();
+        } else {
+            var mouse = Mouse.GetState();
+            var keyboard = Keyboard.GetState();
 
-        io.MouseDown[0] = mouse.LeftButton == ButtonState.Pressed;
-        io.MouseDown[1] = mouse.RightButton == ButtonState.Pressed;
-        io.MouseDown[2] = mouse.MiddleButton == ButtonState.Pressed;
+            for (int i = 0; i < keys.Count; i++) {
+                io.KeysDown[keys[i]] = keyboard.IsKeyDown((Keys) keys[i]);
+            }
 
-        var scrollDelta = mouse.ScrollWheelValue - scrollWheelValue;
-        io.MouseWheel = scrollDelta > 0 ? 1 : scrollDelta < 0 ? -1 : 0;
-        scrollWheelValue = mouse.ScrollWheelValue;
+            io.KeyShift = keyboard.IsKeyDown(Keys.LeftShift) || keyboard.IsKeyDown(Keys.RightShift);
+            io.KeyCtrl = keyboard.IsKeyDown(Keys.LeftControl) || keyboard.IsKeyDown(Keys.RightControl);
+            io.KeyAlt = keyboard.IsKeyDown(Keys.LeftAlt) || keyboard.IsKeyDown(Keys.RightAlt);
+            io.KeySuper = keyboard.IsKeyDown(Keys.LeftWindows) || keyboard.IsKeyDown(Keys.RightWindows);
+
+            io.MousePos = new System.Numerics.Vector2(mouse.X, mouse.Y);
+
+            io.MouseDown[0] = mouse.LeftButton == ButtonState.Pressed;
+            io.MouseDown[1] = mouse.RightButton == ButtonState.Pressed;
+            io.MouseDown[2] = mouse.MiddleButton == ButtonState.Pressed;
+
+            var scrollDelta = mouse.ScrollWheelValue - scrollWheelValue;
+            io.MouseWheel = scrollDelta > 0 ? 1 : scrollDelta < 0 ? -1 : 0;
+            scrollWheelValue = mouse.ScrollWheelValue;
+        }
     }
 
     #endregion Setup & Update
