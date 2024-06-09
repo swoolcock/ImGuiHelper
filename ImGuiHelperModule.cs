@@ -61,12 +61,15 @@ public class ImGuiHelperModule : EverestModule {
         var disableInput = imGuiManager?.WantCaptureKeyboard ?? false;
         MInput.Disabled = disableInput;
         MInput.Active = !disableInput;
-        Engine.Commands.Enabled = !disableInput;
+        
+        if (Engine.Commands != null) {
+            Engine.Commands.Enabled = !disableInput;
+        }
 
         orig(self, gametime);
 
-        if (Settings.ToggleMouseCursor.Pressed) {
-            Engine.Instance.IsMouseVisible = !Engine.Instance.IsMouseVisible;
+        if (Settings?.ToggleMouseCursor?.Pressed ?? false) {
+            self.IsMouseVisible = !self.IsMouseVisible;
         }
 
         imGuiManager?.UpdateHandlers(gametime);
@@ -92,9 +95,11 @@ public class ImGuiHelperModule : EverestModule {
         ImGuiManager.Handlers.Clear();
     }
 
-    [Command("imgui_demo", "Show ImGui Demo Window")]
+    [Command("imgui_demo", "Toggle ImGui Demo Window")]
     private static void CmdImGuiDemoWindow() {
-        if (!ImGuiManager.Handlers.OfType<DemoWindow>().Any()) {
+        if (ImGuiManager.Handlers.OfType<DemoWindow>().FirstOrDefault() is { } window) {
+            ImGuiManager.Handlers.Remove(window);
+        } else {
             ImGuiManager.Handlers.Add(new DemoWindow());
         }
     }

@@ -42,7 +42,9 @@ public sealed class ImGuiRenderer {
     // Input
     private int scrollWheelValue;
 
-    private readonly List<int> keys = new List<int>();
+    private readonly Keys[] allKeys = Enum.GetValues<Keys>();
+    
+    // private Dictionary<ImGuiKey, Keys> keys = new();
 
     public ImGuiRenderer(Game game) {
         var context = ImGui.CreateContext();
@@ -121,7 +123,7 @@ public sealed class ImGuiRenderer {
         UpdateInput();
 
         ImGui.NewFrame();
-        ImGui.DockSpaceOverViewport(ImGui.GetMainViewport(), ImGuiDockNodeFlags.PassthruCentralNode | ImGuiDockNodeFlags.NoDockingInCentralNode);
+        ImGui.DockSpaceOverViewport(ImGui.GetMainViewport(), ImGuiDockNodeFlags.PassthruCentralNode | ImGuiDockNodeFlags.NoDockingOverCentralNode);
     }
 
     /// <summary>
@@ -150,26 +152,28 @@ public sealed class ImGuiRenderer {
     private void SetupInput() {
         var io = ImGui.GetIO();
 
-        keys.Add(io.KeyMap[(int) ImGuiKey.Tab] = (int) Keys.Tab);
-        keys.Add(io.KeyMap[(int) ImGuiKey.LeftArrow] = (int) Keys.Left);
-        keys.Add(io.KeyMap[(int) ImGuiKey.RightArrow] = (int) Keys.Right);
-        keys.Add(io.KeyMap[(int) ImGuiKey.UpArrow] = (int) Keys.Up);
-        keys.Add(io.KeyMap[(int) ImGuiKey.DownArrow] = (int) Keys.Down);
-        keys.Add(io.KeyMap[(int) ImGuiKey.PageUp] = (int) Keys.PageUp);
-        keys.Add(io.KeyMap[(int) ImGuiKey.PageDown] = (int) Keys.PageDown);
-        keys.Add(io.KeyMap[(int) ImGuiKey.Home] = (int) Keys.Home);
-        keys.Add(io.KeyMap[(int) ImGuiKey.End] = (int) Keys.End);
-        keys.Add(io.KeyMap[(int) ImGuiKey.Delete] = (int) Keys.Delete);
-        keys.Add(io.KeyMap[(int) ImGuiKey.Backspace] = (int) Keys.Back);
-        keys.Add(io.KeyMap[(int) ImGuiKey.Enter] = (int) Keys.Enter);
-        keys.Add(io.KeyMap[(int) ImGuiKey.Escape] = (int) Keys.Escape);
-        keys.Add(io.KeyMap[(int) ImGuiKey.Space] = (int) Keys.Space);
-        keys.Add(io.KeyMap[(int) ImGuiKey.A] = (int) Keys.A);
-        keys.Add(io.KeyMap[(int) ImGuiKey.C] = (int) Keys.C);
-        keys.Add(io.KeyMap[(int) ImGuiKey.V] = (int) Keys.V);
-        keys.Add(io.KeyMap[(int) ImGuiKey.X] = (int) Keys.X);
-        keys.Add(io.KeyMap[(int) ImGuiKey.Y] = (int) Keys.Y);
-        keys.Add(io.KeyMap[(int) ImGuiKey.Z] = (int) Keys.Z);
+        // keys = new() {
+        //     { ImGuiKey.Tab, Keys.Tab },
+        //     { ImGuiKey.LeftArrow, Keys.Left },
+        //     { ImGuiKey.RightArrow, Keys.Right },
+        //     { ImGuiKey.UpArrow, Keys.Up },
+        //     { ImGuiKey.DownArrow, Keys.Down },
+        //     { ImGuiKey.PageUp, Keys.PageUp },
+        //     { ImGuiKey.PageDown, Keys.PageDown },
+        //     { ImGuiKey.Home, Keys.Home },
+        //     { ImGuiKey.End, Keys.End },
+        //     { ImGuiKey.Delete, Keys.Delete },
+        //     { ImGuiKey.Backspace, Keys.Back },
+        //     { ImGuiKey.Enter, Keys.Enter },
+        //     { ImGuiKey.Escape, Keys.Escape },
+        //     { ImGuiKey.Space, Keys.Space },
+        //     { ImGuiKey.A, Keys.A },
+        //     { ImGuiKey.C, Keys.C },
+        //     { ImGuiKey.V, Keys.V },
+        //     { ImGuiKey.X, Keys.X },
+        //     { ImGuiKey.Y, Keys.Y },
+        //     { ImGuiKey.Z, Keys.Z },
+        // };
 
         // MonoGame-specific //////////////////////
         // _game.Window.TextInput += (s, a) =>
@@ -188,9 +192,76 @@ public sealed class ImGuiRenderer {
         };
         ///////////////////////////////////////////
 
+        
         ImGui.GetIO().Fonts.AddFontDefault();
     }
 
+    /// <summary>
+    /// Tries to map an FNA key to an ImGui key.
+    /// Borrowed from:
+    /// https://github.com/GlaireDaggers/ImGuizmo.FNA/blob/main/ImGuizmo.FNA/ImGuiRenderer.cs
+    /// </summary>
+    private bool TryMapKeys(Keys key, out ImGuiKey imguikey)
+    {
+        //Special case not handed in the switch...
+        //If the actual key we put in is "None", return none and true. 
+        //otherwise, return none and false.
+        if (key == Keys.None)
+        {
+            imguikey = ImGuiKey.None;
+            return true;
+        }
+
+        imguikey = key switch
+        {
+            Keys.Back => ImGuiKey.Backspace,
+            Keys.Tab => ImGuiKey.Tab,
+            Keys.Enter => ImGuiKey.Enter,
+            Keys.CapsLock => ImGuiKey.CapsLock,
+            Keys.Escape => ImGuiKey.Escape,
+            Keys.Space => ImGuiKey.Space,
+            Keys.PageUp => ImGuiKey.PageUp,
+            Keys.PageDown => ImGuiKey.PageDown,
+            Keys.End => ImGuiKey.End,
+            Keys.Home => ImGuiKey.Home,
+            Keys.Left => ImGuiKey.LeftArrow,
+            Keys.Right => ImGuiKey.RightArrow,
+            Keys.Up => ImGuiKey.UpArrow,
+            Keys.Down => ImGuiKey.DownArrow,
+            Keys.PrintScreen => ImGuiKey.PrintScreen,
+            Keys.Insert => ImGuiKey.Insert,
+            Keys.Delete => ImGuiKey.Delete,
+            >= Keys.D0 and <= Keys.D9 => ImGuiKey._0 + (key - Keys.D0),
+            >= Keys.A and <= Keys.Z => ImGuiKey.A + (key - Keys.A),
+            >= Keys.NumPad0 and <= Keys.NumPad9 => ImGuiKey.Keypad0 + (key - Keys.NumPad0),
+            Keys.Multiply => ImGuiKey.KeypadMultiply,
+            Keys.Add => ImGuiKey.KeypadAdd,
+            Keys.Subtract => ImGuiKey.KeypadSubtract,
+            Keys.Decimal => ImGuiKey.KeypadDecimal,
+            Keys.Divide => ImGuiKey.KeypadDivide,
+            >= Keys.F1 and <= Keys.F12 => ImGuiKey.F1 + (key - Keys.F1),
+            Keys.NumLock => ImGuiKey.NumLock,
+            Keys.Scroll => ImGuiKey.ScrollLock,
+            Keys.LeftShift => ImGuiKey.ModShift,
+            Keys.LeftControl => ImGuiKey.ModCtrl,
+            Keys.LeftAlt => ImGuiKey.ModAlt,
+            Keys.OemSemicolon => ImGuiKey.Semicolon,
+            Keys.OemPlus => ImGuiKey.Equal,
+            Keys.OemComma => ImGuiKey.Comma,
+            Keys.OemMinus => ImGuiKey.Minus,
+            Keys.OemPeriod => ImGuiKey.Period,
+            Keys.OemQuestion => ImGuiKey.Slash,
+            Keys.OemTilde => ImGuiKey.GraveAccent,
+            Keys.OemOpenBrackets => ImGuiKey.LeftBracket,
+            Keys.OemCloseBrackets => ImGuiKey.RightBracket,
+            Keys.OemPipe => ImGuiKey.Backslash,
+            Keys.OemQuotes => ImGuiKey.Apostrophe,
+            _ => ImGuiKey.None,
+        };
+
+        return imguikey != ImGuiKey.None;
+    }
+    
     /// <summary>
     /// Updates the <see cref="Effect" /> to the current matrices and texture
     /// </summary>
@@ -221,33 +292,39 @@ public sealed class ImGuiRenderer {
 
         // if the game isn't focused, reset everything
         if (!Engine.Instance.IsActive) {
-            io.MousePos = new System.Numerics.Vector2(-1f);
+            io.AddMousePosEvent(-1f, -1f);
+            io.AddMouseWheelEvent(0f, 0f);
+            // io.MousePos = new System.Numerics.Vector2(-1f);
             scrollWheelValue = 0;
             io.ClearInputKeys();
         } else {
             var mouse = Mouse.GetState();
             var keyboard = Keyboard.GetState();
 
-            for (int i = 0; i < keys.Count; i++) {
-                io.KeysDown[keys[i]] = keyboard.IsKeyDown((Keys) keys[i]);
+            foreach (var key in allKeys) {
+                if (TryMapKeys(key, out var imguiKey)) {
+                    io.AddKeyEvent(imguiKey, keyboard.IsKeyDown(key));
+                }
             }
 
-            io.KeyShift = keyboard.IsKeyDown(Keys.LeftShift) || keyboard.IsKeyDown(Keys.RightShift);
-            io.KeyCtrl = keyboard.IsKeyDown(Keys.LeftControl) || keyboard.IsKeyDown(Keys.RightControl);
-            io.KeyAlt = keyboard.IsKeyDown(Keys.LeftAlt) || keyboard.IsKeyDown(Keys.RightAlt);
-            io.KeySuper = keyboard.IsKeyDown(Keys.LeftWindows) || keyboard.IsKeyDown(Keys.RightWindows);
+            // io.KeyShift = keyboard.IsKeyDown(Keys.LeftShift) || keyboard.IsKeyDown(Keys.RightShift);
+            // io.KeyCtrl = keyboard.IsKeyDown(Keys.LeftControl) || keyboard.IsKeyDown(Keys.RightControl);
+            // io.KeyAlt = keyboard.IsKeyDown(Keys.LeftAlt) || keyboard.IsKeyDown(Keys.RightAlt);
+            // io.KeySuper = keyboard.IsKeyDown(Keys.LeftWindows) || keyboard.IsKeyDown(Keys.RightWindows);
 
-            io.MousePos = new System.Numerics.Vector2(mouse.X, mouse.Y);
-
-            io.MouseDown[0] = mouse.LeftButton == ButtonState.Pressed;
-            io.MouseDown[1] = mouse.RightButton == ButtonState.Pressed;
-            io.MouseDown[2] = mouse.MiddleButton == ButtonState.Pressed;
-
-            var scrollDelta = mouse.ScrollWheelValue - scrollWheelValue;
-            io.MouseWheel = scrollDelta > 0 ? 1 : scrollDelta < 0 ? -1 : 0;
+            io.AddMousePosEvent(mouse.X, mouse.Y);
+            io.AddMouseButtonEvent(0, mouse.LeftButton == ButtonState.Pressed);
+            io.AddMouseButtonEvent(1, mouse.RightButton == ButtonState.Pressed);
+            io.AddMouseButtonEvent(2, mouse.MiddleButton == ButtonState.Pressed);
+            io.AddMouseButtonEvent(3, mouse.XButton1 == ButtonState.Pressed);
+            io.AddMouseButtonEvent(4, mouse.XButton2 == ButtonState.Pressed);
+            
+            io.AddMouseWheelEvent(0f, (mouse.ScrollWheelValue - scrollWheelValue) / WheelDelta);
             scrollWheelValue = mouse.ScrollWheelValue;
         }
     }
+
+    private const float WheelDelta = 120f;
 
     #endregion Setup & Update
 
@@ -308,7 +385,7 @@ public sealed class ImGuiRenderer {
         int idxOffset = 0;
 
         for (int n = 0; n < drawData.CmdListsCount; n++) {
-            ImDrawListPtr cmdList = drawData.CmdListsRange[n];
+            ImDrawListPtr cmdList = drawData.CmdLists[n];
 
             fixed (void* vtxDstPtr = &vertexData[vtxOffset * DrawVertDeclaration.Size])
             fixed (void* idxDstPtr = &indexData[idxOffset * sizeof(ushort)]) {
@@ -333,7 +410,7 @@ public sealed class ImGuiRenderer {
         int idxOffset = 0;
 
         for (int n = 0; n < drawData.CmdListsCount; n++) {
-            ImDrawListPtr cmdList = drawData.CmdListsRange[n];
+            ImDrawListPtr cmdList = drawData.CmdLists[n];
 
             for (int cmdi = 0; cmdi < cmdList.CmdBuffer.Size; cmdi++) {
                 ImDrawCmdPtr drawCmd = cmdList.CmdBuffer[cmdi];
