@@ -42,6 +42,8 @@ public sealed class ImGuiRenderer {
     // Input
     private int scrollWheelValue;
 
+    private readonly Keys[] allKeys = Enum.GetValues<Keys>();
+    
     public ImGuiRenderer(Game game) {
         var context = ImGui.CreateContext();
         ImGui.SetCurrentContext(context);
@@ -185,14 +187,20 @@ public sealed class ImGuiRenderer {
 
         // if the game isn't focused, reset everything
         if (!Engine.Instance.IsActive) {
+            io.AddMouseButtonEvent(0, false);
+            io.AddMouseButtonEvent(1, false);
+            io.AddMouseButtonEvent(2, false);
+            io.AddMouseButtonEvent(3, false);
+            io.AddMouseButtonEvent(4, false);
             io.AddMousePosEvent(-1.0f, -1.0f);
             io.AddMouseWheelEvent(0, 0);
+            io.ClearInputCharacters();
             io.ClearInputKeys();
         } else {
             var mouse = Mouse.GetState();
             var keyboard = Keyboard.GetState();
 
-            foreach (var key in Enum.GetValues<Keys>()) {
+            foreach (var key in allKeys) {
                 if (TryMapKeys(key, out var imGuiKey)) {
                     io.AddKeyEvent(imGuiKey, keyboard.IsKeyDown(key));
                 }
