@@ -219,7 +219,14 @@ public sealed class ImGuiRenderer {
         }
     }
 
-    private bool TryMapKeys(Keys key, out ImGuiKey imGuiKey)
+    /// <summary>
+    /// Tries to map an FNA key to an ImGui key.
+    /// Borrowed from:
+    /// https://github.com/GlaireDaggers/ImGuizmo.FNA/blob/main/ImGuizmo.FNA/ImGuiRenderer.cs
+    /// Modified to only use named cases in the range (ImGuiKey.NamedKey_BEGIN, ImGuiKey.NamedKey_END]
+    /// and the support both left and right modifier keys.
+    /// </summary>
+    private static bool TryMapKeys(Keys key, out ImGuiKey imGuiKey)
     {
         // Special case not handed in the switch...
         // If the actual key we put in is "None", return None and true. 
@@ -260,9 +267,14 @@ public sealed class ImGuiRenderer {
             >= Keys.F1 and <= Keys.F24 => ImGuiKey.F1 + (key - Keys.F1),
             Keys.NumLock => ImGuiKey.NumLock,
             Keys.Scroll => ImGuiKey.ScrollLock,
-            Keys.LeftShift => ImGuiKey.ModShift,
-            Keys.LeftControl => ImGuiKey.ModCtrl,
-            Keys.LeftAlt => ImGuiKey.ModAlt,
+            Keys.LeftShift => ImGuiKey.LeftShift,
+            Keys.RightShift => ImGuiKey.RightShift,
+            Keys.LeftControl => ImGuiKey.LeftCtrl,
+            Keys.RightControl => ImGuiKey.RightCtrl,
+            Keys.LeftAlt => ImGuiKey.LeftAlt,
+            Keys.RightAlt => ImGuiKey.RightAlt,
+            Keys.LeftWindows => ImGuiKey.LeftSuper,
+            Keys.RightWindows => ImGuiKey.RightSuper,
             Keys.OemSemicolon => ImGuiKey.Semicolon,
             Keys.OemPlus => ImGuiKey.Equal,
             Keys.OemComma => ImGuiKey.Comma,
