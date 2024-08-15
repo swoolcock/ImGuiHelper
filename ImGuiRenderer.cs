@@ -200,6 +200,16 @@ public sealed class ImGuiRenderer {
                 }
             }
 
+            bool shiftMod = keyboard.IsKeyDown(Keys.LeftShift) || keyboard.IsKeyDown(Keys.RightShift);
+            bool altMod = keyboard.IsKeyDown(Keys.LeftAlt) || keyboard.IsKeyDown(Keys.RightAlt);
+            bool ctrlMod = keyboard.IsKeyDown(Keys.LeftControl) || keyboard.IsKeyDown(Keys.RightControl);
+            bool superMod = keyboard.IsKeyDown(Keys.LeftWindows) || keyboard.IsKeyDown(Keys.RightWindows);
+            
+            io.AddKeyEvent(ImGuiKey.ModShift, shiftMod);
+            io.AddKeyEvent(ImGuiKey.ModAlt, altMod);
+            io.AddKeyEvent(ImGuiKey.ModCtrl, ctrlMod);
+            io.AddKeyEvent(ImGuiKey.ModSuper, superMod);
+            
             io.AddMousePosEvent(mouse.X, mouse.Y);
             io.AddMouseButtonEvent(0, mouse.LeftButton == ButtonState.Pressed);
             io.AddMouseButtonEvent(1, mouse.RightButton == ButtonState.Pressed);
@@ -257,10 +267,14 @@ public sealed class ImGuiRenderer {
             >= Keys.F1 and <= Keys.F24 => ImGuiKey.F1 + (key - Keys.F1),
             Keys.NumLock => ImGuiKey.NumLock,
             Keys.Scroll => ImGuiKey.ScrollLock,
-            Keys.LeftShift or Keys.RightShift => ImGuiKey.ModShift,
-            Keys.LeftControl or Keys.RightControl => ImGuiKey.ModCtrl,
-            Keys.LeftAlt or Keys.RightAlt => ImGuiKey.ModAlt,
-            Keys.LeftWindows or Keys.RightWindows => ImGuiKey.ModSuper,
+            Keys.LeftShift => ImGuiKey.LeftShift,
+            Keys.RightShift => ImGuiKey.RightShift,
+            Keys.LeftControl => ImGuiKey.LeftCtrl,
+            Keys.RightControl => ImGuiKey.RightCtrl,
+            Keys.LeftAlt => ImGuiKey.LeftAlt,
+            Keys.RightAlt => ImGuiKey.RightAlt,
+            Keys.LeftWindows => ImGuiKey.LeftSuper,
+            Keys.RightWindows => ImGuiKey.RightSuper,
             Keys.OemSemicolon => ImGuiKey.Semicolon,
             Keys.OemPlus => ImGuiKey.Equal,
             Keys.OemComma => ImGuiKey.Comma,
