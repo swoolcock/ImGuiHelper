@@ -8,6 +8,7 @@
         <CelestePrefix Condition="'$(CelestePrefix)' == ''">lib-stripped</CelestePrefix>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <PackageId>ImGuiHelper</PackageId>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
 
     <!--Disable "Copy Local" for all references-->
@@ -17,40 +18,29 @@
     </ItemDefinitionGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.0" PrivateAssets="all" />
-        <PackageReference Include="MonoMod" Version="22.1.4.3" PrivateAssets="all" ExcludeAssets="runtime" />
-        <PackageReference Include="MonoMod.RuntimeDetour" Version="22.1.4.3" PrivateAssets="all" ExcludeAssets="runtime" />
-        <PackageReference Include="MonoMod.Utils" Version="22.1.4.3" PrivateAssets="all" ExcludeAssets="runtime" />
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.1" PrivateAssets="all" ExcludeAssets="runtime" />
-        <PackageReference Include="ImGui.NET" Version="1.89.4" />
-        <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
+        <PackageReference Include="MonoMod.RuntimeDetour" Version="25.0.2" />
+
+        <PackageReference Include="ImGui.NET" Version="1.91.0.1" ExcludeAssets="none" />
     </ItemGroup>
 
     <ItemGroup>
-        <Reference Include="$(CelestePrefix)\Celeste.dll">
-            <Private>false</Private>
-        </Reference>
-        <Reference Include="$(CelestePrefix)\MMHOOK_Celeste.dll">
-            <Private>false</Private>
-        </Reference>
-        <Reference Include="$(CelestePrefix)\FNA.dll">
-            <Private>false</Private>
-        </Reference>
-        <Reference Include="$(CelestePrefix)\YamlDotNet.dll">
-            <Private>false</Private>
-        </Reference>
+        <Reference Include="$(CelestePrefix)\Celeste.dll" />
+        <Reference Include="$(CelestePrefix)\MMHOOK_Celeste.dll" />
+        <Reference Include="$(CelestePrefix)\FNA.dll" />
+        <Reference Include="$(CelestePrefix)\YamlDotNet.dll" />
     </ItemGroup>
 
     <Target Name="CopyFiles" AfterTargets="Build">
-        <Copy SourceFiles="$(OutputPath)\$(AssemblyName).dll" DestinationFolder="bin" />
-        <Copy SourceFiles="$(OutputPath)\$(AssemblyName).pdb" DestinationFolder="bin" />
-        <Copy SourceFiles="lib\ImGui.NET.dll" DestinationFolder="bin" />
-        <Copy SourceFiles="lib\linux-x64\cimgui.so" DestinationFiles="bin\lib-linux\libcimgui.so" />
-        <Copy SourceFiles="lib\osx\cimgui.dylib" DestinationFiles="bin\lib-osx\libcimgui.dylib" />
-        <Copy SourceFiles="lib\win-x64\cimgui.dll" DestinationFiles="bin\lib-win-x64\cimgui.dll" />
-        <Copy SourceFiles="lib\win-x86\cimgui.dll" DestinationFiles="bin\lib-win-x86\cimgui.dll" />
+        <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="bin" />
+        <Copy SourceFiles="$(OutputPath)$(AssemblyName).pdb" DestinationFolder="bin" />
+
+        <Copy SourceFiles="$(OutputPath)ImGui.NET.dll" DestinationFolder="bin"/>
+        <Copy SourceFiles="$(OutputPath)runtimes\linux-x64\native\libcimgui.so" DestinationFolder="bin\lib-linux"/>
+        <Copy SourceFiles="$(OutputPath)runtimes\osx\native\libcimgui.dylib" DestinationFolder="bin\lib-osx"/>
+        <Copy SourceFiles="$(OutputPath)runtimes\win-x64\native\cimgui.dll" DestinationFolder="bin\lib-win-x64"/>
+        <Copy SourceFiles="$(OutputPath)runtimes\win-x86\native\cimgui.dll" DestinationFolder="bin\lib-win-x86"/>
     </Target>
-    
+
     <PropertyGroup>
         <PathMap>$(MSBuildProjectDirectory)=ImGuiHelper/</PathMap>
     </PropertyGroup>
