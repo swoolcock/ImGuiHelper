@@ -9,6 +9,7 @@ using Monocle;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using Vector2 = System.Numerics.Vector2;
 
 namespace Celeste.Mod.ImGuiHelper;
 
@@ -43,7 +44,7 @@ public sealed class ImGuiRenderer {
     private int scrollWheelValue;
 
     private readonly Keys[] allKeys = Enum.GetValues<Keys>();
-    
+
     public ImGuiRenderer(Game game) {
         var context = ImGui.CreateContext();
         ImGui.SetCurrentContext(context);
@@ -121,7 +122,7 @@ public sealed class ImGuiRenderer {
         UpdateInput();
 
         ImGui.NewFrame();
-        ImGui.DockSpaceOverViewport(ImGui.GetMainViewport(), ImGuiDockNodeFlags.PassthruCentralNode | ImGuiDockNodeFlags.NoDockingInCentralNode);
+        ImGui.DockSpaceOverViewport(0, ImGui.GetMainViewport(), ImGuiDockNodeFlags.PassthruCentralNode | ImGuiDockNodeFlags.NoDockingOverCentralNode);
     }
 
     /// <summary>
@@ -187,14 +188,7 @@ public sealed class ImGuiRenderer {
 
         // if the game isn't focused, reset everything
         if (!Engine.Instance.IsActive) {
-            io.AddMouseButtonEvent(0, false);
-            io.AddMouseButtonEvent(1, false);
-            io.AddMouseButtonEvent(2, false);
-            io.AddMouseButtonEvent(3, false);
-            io.AddMouseButtonEvent(4, false);
-            io.AddMousePosEvent(-1.0f, -1.0f);
-            io.AddMouseWheelEvent(0, 0);
-            io.ClearInputCharacters();
+            io.ClearInputMouse();
             io.ClearInputKeys();
         } else {
             var mouse = Mouse.GetState();
@@ -213,7 +207,7 @@ public sealed class ImGuiRenderer {
             io.AddMouseButtonEvent(3, mouse.XButton1 == ButtonState.Pressed);
             io.AddMouseButtonEvent(4, mouse.XButton2 == ButtonState.Pressed);
 
-            var scrollDelta = mouse.ScrollWheelValue - scrollWheelValue;
+            int scrollDelta = mouse.ScrollWheelValue - scrollWheelValue;
             io.AddMouseWheelEvent(0, scrollDelta > 0 ? 1 : scrollDelta < 0 ? -1 : 0);
             scrollWheelValue = mouse.ScrollWheelValue;
         }
@@ -221,15 +215,11 @@ public sealed class ImGuiRenderer {
 
     /// <summary>
     /// Tries to map an FNA key to an ImGui key.
-    /// Borrowed from:
-    /// https://github.com/GlaireDaggers/ImGuizmo.FNA/blob/main/ImGuizmo.FNA/ImGuiRenderer.cs
-    /// Modified to only use named cases in the range (ImGuiKey.NamedKey_BEGIN, ImGuiKey.NamedKey_END]
-    /// and the support both left and right modifier keys.
     /// </summary>
     private static bool TryMapKeys(Keys key, out ImGuiKey imGuiKey)
     {
         // Special case not handed in the switch...
-        // If the actual key we put in is "None", return None and true. 
+        // If the actual key we put in is "None", return None and true.
         // Otherwise, return None and false.
         if (key == Keys.None)
         {
@@ -267,14 +257,10 @@ public sealed class ImGuiRenderer {
             >= Keys.F1 and <= Keys.F24 => ImGuiKey.F1 + (key - Keys.F1),
             Keys.NumLock => ImGuiKey.NumLock,
             Keys.Scroll => ImGuiKey.ScrollLock,
-            Keys.LeftShift => ImGuiKey.LeftShift,
-            Keys.RightShift => ImGuiKey.RightShift,
-            Keys.LeftControl => ImGuiKey.LeftCtrl,
-            Keys.RightControl => ImGuiKey.RightCtrl,
-            Keys.LeftAlt => ImGuiKey.LeftAlt,
-            Keys.RightAlt => ImGuiKey.RightAlt,
-            Keys.LeftWindows => ImGuiKey.LeftSuper,
-            Keys.RightWindows => ImGuiKey.RightSuper,
+            Keys.LeftShift or Keys.RightShift => ImGuiKey.ModShift,
+            Keys.LeftControl or Keys.RightControl => ImGuiKey.ModCtrl,
+            Keys.LeftAlt or Keys.RightAlt => ImGuiKey.ModAlt,
+            Keys.LeftWindows or Keys.RightWindows => ImGuiKey.ModSuper,
             Keys.OemSemicolon => ImGuiKey.Semicolon,
             Keys.OemPlus => ImGuiKey.Equal,
             Keys.OemComma => ImGuiKey.Comma,
@@ -351,7 +337,7 @@ public sealed class ImGuiRenderer {
         int idxOffset = 0;
 
         for (int n = 0; n < drawData.CmdListsCount; n++) {
-            ImDrawListPtr cmdList = drawData.CmdListsRange[n];
+            ImDrawListPtr cmdList = drawData.CmdLists[n];
 
             fixed (void* vtxDstPtr = &vertexData[vtxOffset * DrawVertDeclaration.Size])
             fixed (void* idxDstPtr = &indexData[idxOffset * sizeof(ushort)]) {
@@ -368,7 +354,7 @@ public sealed class ImGuiRenderer {
         indexBuffer.SetData(indexData, 0, drawData.TotalIdxCount * sizeof(ushort));
     }
 
-    private unsafe void RenderCommandLists(ImDrawDataPtr drawData) {
+    private void RenderCommandLists(ImDrawDataPtr drawData) {
         graphicsDevice.SetVertexBuffer(vertexBuffer);
         graphicsDevice.Indices = indexBuffer;
 
@@ -376,7 +362,7 @@ public sealed class ImGuiRenderer {
         int idxOffset = 0;
 
         for (int n = 0; n < drawData.CmdListsCount; n++) {
-            ImDrawListPtr cmdList = drawData.CmdListsRange[n];
+            ImDrawListPtr cmdList = drawData.CmdLists[n];
 
             for (int cmdi = 0; cmdi < cmdList.CmdBuffer.Size; cmdi++) {
                 ImDrawCmdPtr drawCmd = cmdList.CmdBuffer[cmdi];
