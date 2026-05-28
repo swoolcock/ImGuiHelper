@@ -31,6 +31,8 @@ public class ImGuiManager {
             renderTarget = new RenderTarget2D(Engine.Instance.GraphicsDevice, expectedWidth, expectedHeight, false, SurfaceFormat.Color, DepthFormat.Depth24Stencil8, 0, RenderTargetUsage.DiscardContents);
         }
 
+        var previousRenderTarget = Engine.Instance.GraphicsDevice.GetRenderTargets();
+
         Engine.Graphics.GraphicsDevice.SetRenderTarget(renderTarget);
         Engine.Graphics.GraphicsDevice.Clear(Color.Transparent);
 
@@ -41,6 +43,8 @@ public class ImGuiManager {
             }
         }
         renderer.AfterLayout();
+
+        Engine.Graphics.GraphicsDevice.SetRenderTargets(previousRenderTarget);
 
         WantCaptureKeyboard = ImGui.GetIO().WantCaptureKeyboard;
     }

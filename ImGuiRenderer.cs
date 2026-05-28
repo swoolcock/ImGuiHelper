@@ -303,6 +303,9 @@ public sealed class ImGuiRenderer {
         // Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled, vertex/texcoord/color pointers
         var lastViewport = graphicsDevice.Viewport;
         var lastScissorBox = graphicsDevice.ScissorRectangle;
+        var lastRasterizerState = graphicsDevice.RasterizerState;
+        var lastDepthStencilState = graphicsDevice.DepthStencilState;
+        var lastBlendState = graphicsDevice.BlendState;
 
         graphicsDevice.BlendFactor = Color.White;
         graphicsDevice.BlendState = BlendState.NonPremultiplied;
@@ -322,6 +325,9 @@ public sealed class ImGuiRenderer {
         // Restore modified state
         graphicsDevice.Viewport = lastViewport;
         graphicsDevice.ScissorRectangle = lastScissorBox;
+        graphicsDevice.RasterizerState = lastRasterizerState;
+        graphicsDevice.DepthStencilState = lastDepthStencilState;
+        graphicsDevice.BlendState = lastBlendState;
     }
 
     private unsafe void UpdateBuffers(ImDrawDataPtr drawData) {
